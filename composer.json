@@ -1,0 +1,21 @@
+{
+	"name": "ioalessio/translatecollectionbundle",
+	"type": "symfony-bundle",
+	"description": "Form Widget for content translation",
+	"keywords": [ "form translation collection", "Symfony2" ],
+	"license": "LGPL",
+	"authors": [
+		{
+			"name": "Alessio",
+			"email": "io.alessio@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"symfony/framework-bundle": ">=2.1,<2.3-dev"
+	},
+	"autoload": {
+		"psr-0": { "Io\\TranslateCollectionBundle": "" }
+	},
+	"target-dir": "Io/TranslateCollectionBundle"
+}
