@@ -1,0 +1,40 @@
+<div id="{{ form.vars['id'] }}"  data-prototype="{{ form_widget(form.vars['prototype'])|e }}">
+
+        <div>
+            {{ form_errors(form) }}
+        </div>
+        
+        <div class="controls">
+        <ul class="nav nav-tabs"  id="{{ form.vars['id'] }}_tabs">            
+        {% for locale in form.vars['locales'] %}
+        {% set errors = { } %}
+        {% if form[locale] is defined %}
+            {% for child in form[locale] %}{% if child.vars.errors|length > 0 %}{% set errors = { locale: true } | merge(errors) %}{% endif %}{% endfor %}
+        {% endif %}
+
+            <li class="{{ loop.first ? "active" : "" }}">
+                <a href="#{{ form.vars['id'] }}_locale_{{ locale }}" data-toggle="tab">                    
+
+                        <span class="flag flag-{{ locale }}"></span>
+                        {% if errors.locale is defined %}&nbsp; <span class="badge badge-important"> ! </span>{% endif %}
+                 </a>
+            </li>
+        {% endfor %}
+        </ul>
+        </div>
+        <div class="tab-content">
+            {% for locale in form.vars['locales'] %}        
+            <div class="tab-pane {{ loop.first ? "active" : "" }} translate_content" id="{{ form.vars['id'] }}_locale_{{ locale }}" data-locale="{{ locale }}" data-prototype-div="{{ form.vars['id'] }}" >
+                {% if form[locale] is defined %}
+                      {{ form_widget(form[locale])  }}
+                {% else %}
+                    <div class="actions">
+                      {{ 'Localizzazione non disponibile' | trans }} 
+                            <button class="translate_add"><i class="icon-plus"></i></button>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {{ form_rest(form) }}
+  </div>
