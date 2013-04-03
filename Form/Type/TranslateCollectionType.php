@@ -10,22 +10,35 @@ use Symfony\Component\Form\Extension\Core\EventListener\ResizeFormListener;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 
-class TranslateCollectionType extends CollectionType
+class TranslateCollectionType extends AbstractType
 {
     public $locales;
     
     function __construct($locales = array()) {
-        $this->locales = array('it', 'en');
+        $this->locales = array('en', 'it');
     }
-
+    
     /**
      * {@inheritdoc}
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
-    {        
-        parent::buildForm($builder, $options);
+    {
+        if ($options['allow_add'] && $options['prototype']) {
+            $prototype = $builder->create($options['prototype_name'], $options['type'], array_replace(array(
+                'label' => $options['prototype_name'] . 'label__',
+            ), $options['options']));
+            $builder->setAttribute('prototype', $prototype->getForm());
+        }
+
+        $resizeListener = new ResizeFormListener(
+            $options['type'],
+            $options['options'],
+            $options['allow_add'],
+            $options['allow_delete']
+        );
+
+        $builder->addEventSubscriber($resizeListener);
     }
 
     /**
@@ -42,8 +55,44 @@ class TranslateCollectionType extends CollectionType
         if ($form->getConfig()->hasAttribute('prototype')) {
             $view->vars['prototype'] = $form->getConfig()->getAttribute('prototype')->createView($view);
         }
-    }    
+    }  
 
+    /**
+     * {@inheritdoc}
+     */
+    public function finishView(FormView $view, FormInterface $form, array $options)
+    {
+        if ($form->getConfig()->hasAttribute('prototype') && $view->vars['prototype']->vars['multipart']) {
+            $view->vars['multipart'] = true;
+        }
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $optionsNormalizer = function (Options $options, $value) {
+            $value['block_name'] = 'entry';
+
+            return $value;
+        };
+
+        $resolver->setDefaults(array(
+            'allow_add'      => true,
+            'allow_delete'   => false,
+            'by_reference' => false,
+            'prototype'      => true,
+            'prototype_name' => '__locale__',
+            'type'           => 'text',
+            'options'        => array(),
+        ));
+
+        $resolver->setNormalizers(array(
+            'options' => $optionsNormalizer,
+        ));
+    }
+    
     /**
      * {@inheritdoc}
      */
